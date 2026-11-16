@@ -4,15 +4,15 @@
 * Salma Khaled - ID: 2304099
 
 ## Tech Stack
-* **Back-end:** Python (Flask), PyMySQL, bcrypt, python-dotenv
-* **Front-end:** HTML5, CSS3, Bootstrap 5
-* **Database:** MySQL
+* Back-end: Python (Flask), PyMySQL, bcrypt, python-dotenv
+* Front-end: HTML5, CSS3, Bootstrap 5
+* Database: MySQL
 
 ---
 
 ## Project Structure
 
-text
+`text
 lab4-2304099/
 ├── problem1_DDL.sql        # Schema creation for Company database (5 tables)
 ├── problem1_DML.sql        # Seed data for Company database
@@ -33,7 +33,6 @@ lab4-2304099/
 │   │   └── reports.html
 │   └── static/
 └── README.md
-
 Step-by-Step Setup & How to Run
 1. Database Setup (MySQL)
 Run the SQL scripts using the MySQL client (or DBeaver) in the exact order below:
