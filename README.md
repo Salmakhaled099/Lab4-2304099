@@ -35,7 +35,7 @@
 ### 1. Database Setup (MySQL)
 Run the SQL scripts using the MySQL client (or DBeaver) in the exact order below:
 
-`bash
+
 # Part I: Company Database
 mysql -u root -p < problem1_DDL.sql
 mysql -u root -p < problem1_DML.sql
