@@ -4,15 +4,15 @@
 * Salma Khaled - ID: 2304099
 
 ## Tech Stack
-* Back-end: Python (Flask), PyMySQL, bcrypt, python-dotenv
-* Front-end: HTML5, CSS3, Bootstrap 5
-* Database: MySQL
+* **Back-end:** Python (Flask), PyMySQL, bcrypt, python-dotenv
+* **Front-end:** HTML5, CSS3, Bootstrap 5
+* **Database:** MySQL
 
 ---
 
 ## Project Structure
 
-`text
+text
 lab4-2304099/
 ├── problem1_DDL.sql        # Schema creation for Company database (5 tables)
 ├── problem1_DML.sql        # Seed data for Company database
@@ -61,10 +61,10 @@ mysql -u root -p < website/schema.sql
    python app.py
 
  * Open your browser and navigate to:
-   * Login / To-Do App: http://127.0.0.1:5000/
-   * Library Catalogue & Management (F2.2): http://127.0.0.1:5000/books
-   * Search Books with Prepared Statements Bonus (F2.1): http://127.0.0.1:5000/books/search
-   * Reports, Members, Loans & Analytics (F2.3 - F2.6): http://127.0.0.1:5000/reports
+   * Login / To-Do App: [http://127.0.0.1:5000/](http://127.0.0.1:5000/)
+   * Library Catalogue & Management (F2.2): [http://127.0.0.1:5000/books](http://127.0.0.1:5000/books)
+   * Search Books with Prepared Statements Bonus (F2.1): [http://127.0.0.1:5000/books/search](http://127.0.0.1:5000/books/search)
+   * Reports, Members, Loans & Analytics (F2.3 - F2.6): [http://127.0.0.1:5000/reports](http://127.0.0.1:5000/reports)
 Features & Deliverables
  * Problem 1 (company database):
    * Extended 5-table schema (EMPLOYEE, DEPARTMENT, PROJECT, WORKS_ON, DEPENDENT) with self-referencing and composite keys.
