@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Library Reports, Members & Loans</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        body { background-color: #ffc0cb !important; }
+        .card { background-color: pink !important; border: none; border-radius: 12px; margin-bottom: 24px; }
+        .card-header { background-color: #343a40 !important; color: white; border-top-left-radius: 12px; border-top-right-radius: 12px; }
+        .btn-pink { background-color: #ff1493 !important; border-color: #ff1493 !important; color: white !important; }
+    </style>
+</head>
+<body>
+    <div class="container my-5">
+        <div class="d-flex justify-content-between align-items-center mb-4 p-3 rounded flex-wrap gap-2" style="background-color: #ff69b4;">
+            <h2 style="color: #fff; font-weight: bold;">📊 Reports, Members & Loans (F2.3 - F2.6)</h2>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('list_books') }}" class="btn btn-dark">📚 Catalogue</a>
+                <a href="{{ url_for('search_books') }}" class="btn btn-dark">🔍 Search</a>
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-info alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Members Management -->
+        <div class="card shadow-sm">
+            <div class="card-header"><h5 class="mb-0">👥 Members Management (View & Add Member)</h5></div>
+            <div class="card-body">
+                <form action="{{ url_for('add_member') }}" method="POST" class="row g-2 mb-4 border-bottom pb-3">
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Member ID</label>
+                        <input type="number" name="member_id" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Full Name</label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Email</label>
+                        <input type="email" name="email" class="form-control" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Join Date</label>
+                        <input type="date" name="join_date" value="{{ today }}" class="form-control" required>
+                    </div>
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="submit" class="btn btn-pink w-100">Add</button>
+                    </div>
+                </form>
+
+                <table class="table table-striped bg-white text-center rounded overflow-hidden">
+                    <thead><tr class="table-secondary"><th>ID</th><th>Name</th><th>Email</th><th>Join Date</th></tr></thead>
+                    <tbody>
+                        {% for m in all_members %}
+                        <tr><td>{{ m.member_id }}</td><td>{{ m.name }}</td><td>{{ m.email }}</td><td>{{ m.join_date }}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Borrow & Return Books (Loans Management) -->
+        <div class="card shadow-sm">
+            <div class="card-header"><h5 class="mb-0">📖 Borrow & Return Books (Loans Management)</h5></div>
+            <div class="card-body">
+                <form action="{{ url_for('add_loan') }}" method="POST" class="row g-2 mb-4 border-bottom pb-3">
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Loan ID</label>
+                        <input type="number" name="loan_id" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Book</label>
+                        <select name="book_id" class="form-control" required>
+                            <option value="">Select Book</option>
+                            {% for b in all_books %}
+                                <option value="{{ b.book_id }}">{{ b.title }} (ID: {{ b.book_id }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Member</label>
+                        <select name="member_id" class="form-control" required>
+                            <option value="">Select Member</option>
+                            {% for m in all_members %}
+                                <option value="{{ m.member_id }}">{{ m.name }} (ID: {{ m.member_id }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Loan Date</label>
+                        <input type="date" name="loan_date" value="{{ today }}" class="form-control" required>
+                    </div>
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="submit" class="btn btn-pink w-100">Borrow</button>
+                    </div>
+                </form>
+
+                <table class="table table-striped align-middle bg-white text-center rounded overflow-hidden">
+                    <thead><tr class="table-secondary"><th>Loan ID</th><th>Book</th><th>Member</th><th>Loan Date</th><th>Status / Return Date</th><th>Action</th></tr></thead>
+                    <tbody>
+                        {% for l in all_loans %}
+                        <tr>
+                            <td>{{ l.loan_id }}</td>
+                            <td>{{ l.title }}</td>
+                            <td>{{ l.member_name }}</td>
+                            <td>{{ l.loan_date }}</td>
+                            <td>
+                                {% if l.return_date %}
+                                    <span class="badge bg-success">Returned ({{ l.return_date }})</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">Currently Borrowed</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if not l.return_date %}
+                                    <form action="{{ url_for('return_loan', loan_id=l.loan_id) }}" method="POST" style="display:inline;">
+                                        <button type="submit" class="btn btn-sm btn-primary">Return Book</button>
+                                    </form>
+                                {% else %}
+                                    <span class="text-muted small">Done</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- F2.3 Reports -->
+        <div class="card shadow-sm">
+            <div class="card-header"><h5 class="mb-0">📈 F2.3 — Library Statistics & Reports</h5></div>
+            <div class="card-body">
+                <div class="alert alert-light text-center fw-bold">
+                    Total Library Value: ${{ price_summary.total_price or 0 }} | 
+                    Lowest Price: ${{ price_summary.min_price or 0 }} | 
+                    Highest Price: ${{ price_summary.max_price or 0 }}
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Books & Avg Price per Category</h6>
+                        <table class="table table-striped bg-white text-center rounded overflow-hidden">
+                            <thead><tr class="table-secondary"><th>Category</th><th>Total Books</th><th>Avg Price</th></tr></thead>
+                            <tbody>
+                                {% for c in cat_stats %}
+                                <tr><td>{{ c.category_name }}</td><td>{{ c.total_books }}</td><td>${{ c.avg_price or 0 }}</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Authors with 2 or More Books</h6>
+                        <table class="table table-striped bg-white text-center rounded overflow-hidden">
+                            <thead><tr class="table-secondary"><th>Author</th><th>Book Count</th></tr></thead>
+                            <tbody>
+                                {% for a in prolific_authors %}
+                                <tr><td>{{ a.name }}</td><td>{{ a.book_count }}</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- F2.4 Loans -->
+        <div class="card shadow-sm">
+            <div class="card-header"><h5 class="mb-0">🔄 F2.4 — Loans Analytics</h5></div>
+            <div class="card-body">
+                <h6>Active Loans (Not Returned Yet)</h6>
+                <table class="table table-striped bg-white text-center rounded overflow-hidden mb-4">
+                    <thead><tr class="table-secondary"><th>Loan ID</th><th>Book</th><th>Member</th><th>Loan Date</th></tr></thead>
+                    <tbody>
+                        {% for l in active_loans %}
+                        <tr><td>{{ l.loan_id }}</td><td>{{ l.title }}</td><td>{{ l.member_name }}</td><td>{{ l.loan_date }}</td></tr>
+                        {% else %}
+                        <tr><td colspan="4">All books returned!</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Members Who Never Borrowed a Book</h6>
+                        <table class="table table-striped bg-white text-center rounded overflow-hidden">
+                            <thead><tr class="table-secondary"><th>ID</th><th>Name</th><th>Email</th></tr></thead>
+                            <tbody>
+                                {% for m in inactive_members %}
+                                <tr><td>{{ m.member_id }}</td><td>{{ m.name }}</td><td>{{ m.email }}</td></tr>
+                                {% else %}
+                                <tr><td colspan="3">None</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Books Never Borrowed</h6>
+                        <table class="table table-striped bg-white text-center rounded overflow-hidden">
+                            <thead><tr class="table-secondary"><th>ID</th><th>Title</th><th>Price</th></tr></thead>
+                            <tbody>
+                                {% for b in unborrowed_books %}
+                                <tr><td>{{ b.book_id }}</td><td>{{ b.title }}</td><td>${{ b.price }}</td></tr>
+                                {% else %}
+                                <tr><td colspan="3">None</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- F2.5 Most Borrowed -->
+        <div class="card shadow-sm">
+            <div class="card-header"><h5 class="mb-0">🏆 F2.5 — Most Borrowed</h5></div>
+            <div class="card-body">
+                {% if top_member %}
+                <div class="alert alert-light text-center fw-bold">
+                    🥇 Most Active Member: {{ top_member.name }} ({{ top_member.loan_count }} loans)
+                </div>
+                {% endif %}
+                <h6>Top 3 Most Borrowed Books</h6>
+                <table class="table table-striped bg-white text-center rounded overflow-hidden">
+                    <thead><tr class="table-secondary"><th>Book Title</th><th>Times Borrowed</th></tr></thead>
+                    <tbody>
+                        {% for tb in top_books %}
+                        <tr><td>{{ tb.title }}</td><td>{{ tb.loan_count }}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- F2.6 Authors and Books -->
+        <div class="card shadow-sm">
+            <div class="card-header"><h5 class="mb-0">🌍 F2.6 — Authors & Books</h5></div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>All Authors & Book Counts (Including 0)</h6>
+                        <table class="table table-striped bg-white text-center rounded overflow-hidden">
+                            <thead><tr class="table-secondary"><th>Author</th><th>Country</th><th>Books</th></tr></thead>
+                            <tbody>
+                                {% for ab in authors_books_count %}
+                                <tr><td>{{ ab.name }}</td><td>{{ ab.country }}</td><td>{{ ab.book_count }}</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Books Where Author & Publisher Share Same Country</h6>
+                        <table class="table table-striped bg-white text-center rounded overflow-hidden">
+                            <thead><tr class="table-secondary"><th>Book</th><th>Author</th><th>Publisher</th><th>Country</th></tr></thead>
+                            <tbody>
+                                {% for sc in same_country_books %}
+                                <tr><td>{{ sc.title }}</td><td>{{ sc.author_name }}</td><td>{{ sc.publisher_name }}</td><td>{{ sc.country }}</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

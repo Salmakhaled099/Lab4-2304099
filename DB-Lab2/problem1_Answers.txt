@@ -1,0 +1,130 @@
+Q1.1 Insert a row in the DEPARTMENT table that references a row in the EMPLOYEE table. Then try to delete the referenced row. What will happen?
+- SQL used:
+  INSERT INTO DEPARTMENT (Dnumber, Dname, mgr_ssn, mgr_start_date) VALUES (4, 'Marketing', 101, '2023-01-01');
+  DELETE FROM EMPLOYEE WHERE ssn = 101;
+- Output / Error:
+  ERROR 1451 (23000): Cannot delete or update a parent row: a foreign key constraint fails (company.department, CONSTRAINT department_ibfk_1 FOREIGN KEY (mgr_ssn) REFERENCES employee (ssn))
+  - Explanation: MySQL rejects the deletion because it violates referential integrity (the employee is referenced as a manager in the department table).
+
+Q1.2 Insert a row in the PROJECT table that references a row in the DEPARTMENT table that doesn't exist yet. What will happen?
+- SQL used:
+  INSERT INTO PROJECT (Pnumber, Pname, Plocation, Dno) VALUES (40, 'Delta', 'Aswan', 99);
+- Output / Error:
+  ERROR 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (company.project, CONSTRAINT project_ibfk_1 FOREIGN KEY (Dno) REFERENCES department (Dnumber))
+  - Explanation: MySQL rejects the insertion because department number 99 does not exist in the referenced DEPARTMENT table.
+
+Q1.3 If mgr_ssn and Dno are both NOT NULL, how will you insert the first row in EMPLOYEE or DEPARTMENT?
+- Explanation: 
+  If both foreign keys have strict NOT NULL constraints creating a circular dependency, it becomes impossible to insert the very first row independently because each requires a valid record in the other table to exist first. 
+  To solve this in SQL, one can either:
+  1. Temporarily allow NULL on one of the foreign key columns during table creation, insert the initial records, update them, and then alter the column back to NOT NULL.
+  2. Use a transaction or disable foreign key checks temporarily using SET FOREIGN_KEY_CHECKS = 0;, insert the rows, and then re-enable them using SET FOREIGN_KEY_CHECKS = 1;.
+
+
+========================================
+LAB 4 - PROBLEM 1: ANSWERS & OUTPUTS
+========================================
+
+--- Q1.1 INSERT ---
+(a) Insert a new employee in an existing department:
+SQL: INSERT INTO EMPLOYEE (ssn, fname, lname, bdate, address, gender, salary, super_ssn, Dno) VALUES (107, 'Khaled', 'Ibrahim', '1997-04-12', 'Alexandria', 'Male', 4000.00, 101, 1);
+Output: Query OK, 1 row affected.
+
+(b) Insert a new project in that department:
+SQL: INSERT INTO PROJECT (Pnumber, Pname, Plocation, Dno) VALUES (50, 'Delta', 'Alexandria', 1);
+Output: Query OK, 1 row affected.
+
+(c) Try to insert an employee whose Dno does not exist:
+SQL: INSERT INTO EMPLOYEE (ssn, fname, lname, Dno) VALUES (108, 'Test', 'User', 999);
+Output / Error: Error Code: 1452. Cannot add or update a child row: a foreign key constraint fails (company.employee, CONSTRAINT fk_emp_dept FOREIGN KEY (Dno) REFERENCES department (Dnumber))
+
+
+--- Q1.2 UPDATE ---
+(a) Give a 10% raise to every employee of department 1:
+SQL: UPDATE EMPLOYEE SET salary = salary * 1.10 WHERE Dno = 1;
+Output: Query OK, rows matched: 3, Changed: 3.
+
+(b) Change the location of one project:
+SQL: UPDATE PROJECT SET Plocation = 'Cairo' WHERE Pnumber = 10;
+Output: Query OK, rows matched: 1, Changed: 1.
+
+(c) Try to change the Dno of an employee to a department that does not exist:
+SQL: UPDATE EMPLOYEE SET Dno = 999 WHERE ssn = 101;
+Output / Error: Error Code: 1452. Cannot add or update a child row: a foreign key constraint fails...
+
+
+--- Q1.3 DELETE ---
+(a) Delete one dependent and one WORKS_ON row:
+SQL: DELETE FROM DEPENDENT WHERE essn = 101 AND dependent_name = 'Zain';
+     DELETE FROM WORKS_ON WHERE essn = 101 AND Pno = 10;
+Output: Query OK, 1 row affected (for each).
+
+(b) Try to delete a department that still has employees:
+SQL: DELETE FROM DEPARTMENT WHERE Dnumber = 1;
+Output / Error: Error Code: 1451. Cannot delete or update a parent row: a foreign key constraint fails...
+Explanation: To remove it, you must either delete its employees first, or update their Dno, or configure ON DELETE CASCADE.
+
+(c) Transaction & ROLLBACK test:
+SQL: START TRANSACTION;
+     DELETE FROM DEPENDENT;
+     SELECT * FROM DEPENDENT; -- Returns empty (0 rows)
+     ROLLBACK;
+     SELECT * FROM DEPENDENT; -- Restores all deleted rows back.
+Output: ROLLBACK successfully reverted the delete operation and restored the table data.
+
+
+--- Q1.4 WHERE, DISTINCT ---
+(a) First name, last name and salary of employees earning between 3000 and 6000 and living in Alexandria, highest salary first:
+SQL: SELECT fname, lname, salary FROM EMPLOYEE WHERE salary BETWEEN 3000 AND 6000 AND address LIKE '%Alexandria%' ORDER BY salary DESC;
+
+(b) Employees that have no supervisor:
+SQL: SELECT * FROM EMPLOYEE WHERE super_ssn IS NULL;
+
+(c) Department numbers (Dno) that have at least one employee, each written once:
+SQL: SELECT DISTINCT Dno FROM EMPLOYEE WHERE Dno IS NOT NULL;
+
+
+--- Q1.5 Aggregation ---
+Number of employees and total, average, smallest, and largest salary of the company:
+SQL: SELECT COUNT(*) AS total_employees, SUM(salary) AS total_salary, AVG(salary) AS avg_salary, MIN(salary) AS min_salary, MAX(salary) AS max_salary FROM EMPLOYEE;
+
+
+--- Q1.6 GROUP BY ---
+For each department number (Dno): the number of employees and their average salary:
+SQL: SELECT Dno, COUNT(*) AS employee_count, AVG(salary) AS average_salary FROM EMPLOYEE GROUP BY Dno;
+
+
+--- Q1.7 HAVING ---
+(a) The departments that have more than 2 employees:
+SQL: SELECT Dno, COUNT(*) AS emp_count FROM EMPLOYEE GROUP BY Dno HAVING COUNT(*) > 2;
+
+(b) Count only employees whose salary is above 3000:
+SQL: SELECT Dno, COUNT(*) AS emp_count FROM EMPLOYEE WHERE salary > 3000 GROUP BY Dno HAVING COUNT(*) > 2;
+Explanation: WHERE filters individual rows before grouping, while HAVING filters groups after aggregation.
+
+
+--- Q1.8 JOIN ---
+Full name of every employee with the name of his or her department:
+SQL: SELECT CONCAT(e.fname, ' ', e.lname) AS full_name, d.Dname FROM EMPLOYEE e JOIN DEPARTMENT d ON e.Dno = d.Dnumber;
+
+--- Q1.9 JOIN of three tables ---
+For every WORKS_ON row: the last name of the employee, the name of the project, and the hours:
+SQL: SELECT e.lname, p.Pname, w.hours FROM WORKS_ON w JOIN EMPLOYEE e ON w.essn = e.ssn JOIN PROJECT p ON w.Pno = p.Pnumber;
+
+
+--- Q1.10 LEFT JOIN ---
+(a) Every department with its number of employees, including departments with 0:
+SQL: SELECT d.Dname, COUNT(e.ssn) AS employee_count FROM DEPARTMENT d LEFT JOIN EMPLOYEE e ON d.Dnumber = e.Dno GROUP BY d.Dnumber, d.Dname;
+
+(b) The projects that nobody works on:
+SQL: SELECT p.* FROM PROJECT p LEFT JOIN WORKS_ON w ON p.Pnumber = w.Pno WHERE w.essn IS NULL;
+
+
+--- Q1.11 Self join ---
+Every employee with the name of his or her supervisor:
+SQL: SELECT CONCAT(e.fname, ' ', e.lname) AS employee_name, CONCAT(s.fname, ' ', s.lname) AS supervisor_name FROM EMPLOYEE e LEFT JOIN EMPLOYEE s ON e.super_ssn = s.ssn;
+
+
+--- Q1.12 JOIN + GROUP BY + HAVING ---
+For each project: its name and total hours worked on it, only for projects with more than 20 hours, largest total first:
+SQL: SELECT p.Pname, SUM(w.hours) AS total_hours FROM PROJECT p JOIN WORKS_ON w ON p.Pnumber = w.Pno GROUP BY p.Pnumber, p.Pname HAVING SUM(w.hours) > 20 ORDER BY total_hours DESC;
